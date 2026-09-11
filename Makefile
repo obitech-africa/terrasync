@@ -20,3 +20,22 @@ db-upgrade:
 
 db-check:
 	cd backend && python -m app.db.migrate check
+
+
+prod-build:
+	cd docker && docker compose build
+
+prod-migrate:
+	cd docker && docker compose run --rm migrate
+
+prod-up:
+	cd docker && docker compose up -d
+
+prod-down:
+	cd docker && docker compose down
+
+prod-logs:
+	cd docker && docker compose logs -f api
+
+prod-status:
+	cd docker && docker compose ps

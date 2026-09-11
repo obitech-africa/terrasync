@@ -8,12 +8,16 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.core.logging import configure_logging
+from app.core.middleware import RequestContextMiddleware
 from app.db.migrations import require_current_schema, upgrade_database
 from app.db.session import Base, SessionLocal, engine
 from app.services.demo import seed_demo
 from app.services.configuration_seed import seed_configuration
 
 import app.models  # noqa: F401
+
+configure_logging()
 
 
 @asynccontextmanager
@@ -35,9 +39,14 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Offline-first, AI-assisted field surveying, inspection and reporting API.",
-    version="2.0.0-milestone2",
+    version="4.1.0-production-hardening",
     lifespan=lifespan,
+    docs_url="/docs" if settings.ENABLE_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if settings.ENABLE_DOCS else None,
 )
+
+app.add_middleware(RequestContextMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
