@@ -1,21 +1,85 @@
 services:
   postgres:
     image: postgres:16
-    container_name: terrasync_postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: terrasync
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-terrasync}
+      POSTGRES_USER: ${POSTGRES_USER:-terrasync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - terrasync_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-terrasync} -d ${POSTGRES_DB:-terrasync}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    stop_grace_period: 30s
+    networks:
+      - terrasync_internal
 
-  redis:
-    image: redis:7
-    container_name: terrasync_redis
+  migrate:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment: &api_environment
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-terrasync}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-terrasync}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+      AUTO_MIGRATE_DEVELOPMENT: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JSON_LOGS: ${JSON_LOGS:-true}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-10}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-20}
+      DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-30}
+      DB_POOL_RECYCLE_SECONDS: ${DB_POOL_RECYCLE_SECONDS:-1800}
+      ENABLE_DOCS: ${ENABLE_DOCS:-false}
+      TRUSTED_PROXY_HEADERS: ${TRUSTED_PROXY_HEADERS:-true}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
+    command: ["python", "-m", "app.db.migrate", "upgrade"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - terrasync_internal
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment: *api_environment
     ports:
-      - "6379:6379"
+      - "${API_BIND_ADDRESS:-127.0.0.1}:${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready', timeout=3)"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    stop_grace_period: 30s
+    networks:
+      - terrasync_internal
 
 volumes:
   terrasync_pg_data:
+
+networks:
+  terrasync_internal:
+    driver: bridge

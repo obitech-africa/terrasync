@@ -1,0 +1,150 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TerraSync Coordinator</title><link rel="stylesheet" href="/coordinator/styles.css"></head><body>
+<section id="login" class="auth"><form id="loginForm" class="auth-card"><div class="logo">T</div><h1>TerraSync Coordinator</h1><p class="muted">Inspection operations and review.</p><label>Username<input id="username" value="coordinator" required></label><label>Password<input id="password" type="password" value="demo123" required></label><button class="primary" type="submit">Sign in</button><p id="loginMessage" class="muted"></p></form></section>
+<div id="shell" class="shell hidden"><aside class="side"><div class="brand"><div class="logo">T</div><div><strong>TerraSync</strong><span>Coordinator</span></div></div><div class="nav"><button data-view="home" class="active">Dashboard</button><button data-view="assignments">Assignments</button><button data-view="review">AI Review</button><button data-view="templates">Templates</button><button data-view="clients">Clients & Projects</button><button data-view="assetschemas">Asset Schemas</button><button data-view="airules">AI Rules</button><button data-view="layouts">Report Layouts</button><button data-view="devices">Devices</button><button data-view="profile">Profile</button></div><div class="side-foot"><button id="logout">Sign out</button></div></aside>
+<div class="main"><header class="top"><div><small class="muted">Coordinator operations</small><h1 id="title">Dashboard</h1></div><div class="profile"><div class="avatar" id="avatar">CO</div><div><strong id="name">Coordinator</strong><small id="role">Coordinator</small></div></div></header><main>
+<section id="home" class="view active"><div class="hero"><span class="pill">Operations workspace</span><h2>Inspection operations & review</h2><p class="muted">Assign field work, monitor technician status, review AI-screened submissions and manage device activation.</p></div><div class="metrics" id="metrics"></div><div class="grid2"><article class="panel"><h3>Recent reports</h3><div id="recent"></div></article><article class="panel"><h3>Field status</h3><div id="fieldStatus"></div></article></div></section>
+<section id="assignments" class="view"><div class="grid2"><article class="panel"><h3>Assignments</h3><div id="assignmentList"></div></article><article class="panel"><h3>Create assignment</h3><form id="assignmentForm" class="form-grid"><label>Work order<input id="woNo" required placeholder="WO-2026-0021"></label><label>Site<select id="siteId" required></select></label><label>Template<select id="reportType" required></select></label><label>Priority<select id="priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></label><label class="wide">Technician<select id="technicianId" required></select></label><button class="primary wide" type="submit">Publish assignment</button><p id="assignmentMessage" class="muted wide"></p></form></article></div></section>
+<section id="review" class="view"><article class="panel"><h3>AI review queue</h3><div id="reviewList"></div></article></section>
+
+<section id="templates" class="view">
+  <div class="grid-2 builder-layout">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Template Library</h3>
+          <p class="muted">Published and draft inspection/survey templates.</p>
+        </div>
+        <button id="newTemplateButton" class="primary">New template</button>
+      </div>
+      <div class="button-row">
+        <select id="templateSector"><option value="">All sectors</option></select>
+        <select id="templateCategory"><option value="">All types</option><option value="inspection">Inspection</option><option value="survey">Survey</option></select>
+      </div>
+      <div id="templateList"></div>
+    </article>
+
+    <article class="panel editor-panel">
+      <div class="panel-head">
+        <div>
+          <h3 id="templateEditorTitle">Template Builder</h3>
+          <p class="muted">Edit sections, fields and evidence requirements.</p>
+        </div>
+        <span id="templateDraftStatus" class="status">Draft</span>
+      </div>
+
+      <form id="templateBuilderForm" class="form-grid">
+        <input id="templateDbId" type="hidden">
+        <label>Name<input id="templateName" required></label>
+        <label>Slug<input id="templateSlug" required></label>
+        <label>Sector<input id="templateEditorSector" required></label>
+        <label>Type<select id="templateEditorCategory"><option value="inspection">Inspection</option><option value="survey">Survey</option></select></label>
+        <label class="wide">Description<textarea id="templateDescription" rows="3"></textarea></label>
+
+        <div class="wide">
+          <div class="panel-head">
+            <h4>Sections</h4>
+            <button id="addSectionButton" type="button">Add section</button>
+          </div>
+          <div id="sectionBuilder"></div>
+        </div>
+
+        <div class="wide button-row">
+          <button class="primary" type="submit">Save draft</button>
+          <button id="publishTemplateButton" type="button">Publish current version</button>
+          <button id="deleteTemplateButton" type="button" class="danger">Delete</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>
+
+<section id="clients" class="view"><div class="grid2">
+<article class="panel"><h3>Clients</h3><div id="clientList"></div><form id="clientForm" class="form-grid"><label>Name<input id="clientName" required></label><label>Code<input id="clientCode" required></label><label class="wide">Sector<input id="clientSector"></label><button class="primary wide" type="submit">Create client</button></form></article>
+<article class="panel"><h3>Projects</h3><div id="projectList"></div><form id="projectForm" class="form-grid"><label>Client<select id="projectClient" required></select></label><label>Name<input id="projectName" required></label><label>Code<input id="projectCode" required></label><label>Sector<input id="projectSector"></label><button class="primary wide" type="submit">Create project</button></form></article>
+</div></section>
+
+<section id="assetschemas" class="view">
+  <div class="grid-2 builder-layout">
+    <article class="panel">
+      <div class="panel-head"><div><h3>Asset Schemas</h3><p class="muted">Client/project-specific inventory structures.</p></div><button id="newAssetSchemaButton" class="primary">New schema</button></div>
+      <div id="assetSchemaList"></div>
+    </article>
+    <article class="panel editor-panel">
+      <h3>Asset Schema Builder</h3>
+      <form id="assetSchemaForm" class="form-grid">
+        <input id="assetSchemaId" type="hidden">
+        <label>Name<input id="assetSchemaName" required></label>
+        <label>Asset type<input id="assetSchemaType" required></label>
+        <label>Client<select id="assetSchemaClient"><option value="">Global</option></select></label>
+        <label>Project<select id="assetSchemaProject"><option value="">All projects</option></select></label>
+        <label class="wide form-check"><input id="assetSchemaCamera" type="checkbox" checked> Live camera evidence required</label>
+        <div class="wide">
+          <div class="panel-head"><h4>Fields</h4><button id="addAssetFieldButton" type="button">Add field</button></div>
+          <div id="assetFieldBuilder"></div>
+        </div>
+        <div class="wide button-row">
+          <button class="primary" type="submit">Save schema</button>
+          <button id="deleteAssetSchemaButton" type="button" class="danger">Delete</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>
+
+<section id="airules" class="view">
+  <div class="grid-2 builder-layout">
+    <article class="panel">
+      <div class="panel-head"><div><h3>AI Rule Sets</h3><p class="muted">Pre-screening thresholds and consistency rules.</p></div><button id="newAIRuleButton" class="primary">New rule set</button></div>
+      <div id="aiRuleList"></div>
+    </article>
+    <article class="panel editor-panel">
+      <h3>AI Rule Editor</h3>
+      <form id="aiRuleForm" class="form-grid">
+        <input id="aiRuleId" type="hidden">
+        <label>Name<input id="aiRuleName" required></label>
+        <label>High-risk score<input id="aiHighRisk" type="number" min="0" max="100" value="60"></label>
+        <label>Earth resistance max (Ω)<input id="aiEarthMax" type="number" step="0.01" value="5"></label>
+        <label>Critical grade<select id="aiCriticalGrade"><option>Grade D</option><option>Grade C</option></select></label>
+        <label class="wide form-check"><input id="aiRequiredEvidence" type="checkbox" checked> Flag missing required evidence</label>
+        <label class="wide form-check"><input id="aiGradeConsistency" type="checkbox" checked> Check grade/comment inconsistencies</label>
+        <label class="wide form-check"><input id="aiAbnormalReadings" type="checkbox" checked> Check abnormal numeric readings</label>
+        <div class="wide button-row">
+          <button class="primary" type="submit">Save AI rules</button>
+          <button id="deleteAIRuleButton" type="button" class="danger">Delete</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>
+
+<section id="layouts" class="view">
+  <div class="grid-2 builder-layout">
+    <article class="panel">
+      <div class="panel-head"><div><h3>Report Layouts</h3><p class="muted">Client-facing report behavior and compression.</p></div><button id="newLayoutButton" class="primary">New layout</button></div>
+      <div id="layoutList"></div>
+    </article>
+    <article class="panel editor-panel">
+      <h3>Report Layout Editor</h3>
+      <form id="layoutForm" class="form-grid">
+        <input id="layoutId" type="hidden">
+        <label>Name<input id="layoutName" required></label>
+        <label>Compression<select id="layoutCompression"><option value="compact">Compact</option><option value="standard">Standard</option><option value="archive">Archive</option></select></label>
+        <label>Target PDF size (MB)<input id="layoutTargetMb" type="number" min="1" max="100" value="5"></label>
+        <label>Photo columns<select id="layoutPhotoCols"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select></label>
+        <label class="wide form-check"><input id="layoutCover" type="checkbox" checked> Cover page</label>
+        <label class="wide form-check"><input id="layoutAISummary" type="checkbox" checked> Include AI summary</label>
+        <label class="wide form-check"><input id="layoutInspector" type="checkbox" checked> Include inspector credentials</label>
+        <label class="wide form-check"><input id="layoutCollapsePass" type="checkbox" checked> Collapse passed sections</label>
+        <label class="wide form-check"><input id="layoutExpandCritical" type="checkbox" checked> Expand Grade C/D sections</label>
+        <div id="layoutPreview" class="wide report-preview"></div>
+        <div class="wide button-row">
+          <button class="primary" type="submit">Save layout</button>
+          <button id="deleteLayoutButton" type="button" class="danger">Delete</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>
+<section id="devices" class="view"><div class="grid2"><article class="panel"><h3>Registered field devices</h3><div id="deviceList"></div></article><article class="panel"><h3>Issue technician activation code</h3><form id="otpForm"><label>Technician<select id="otpTech"></select></label><label>Valid for<select id="otpMinutes"><option value="30">30 minutes</option><option value="60">1 hour</option><option value="240">4 hours</option></select></label><button class="primary" type="submit">Generate one-time code</button><div id="otpResult"></div></form></article></div></section>
+<section id="profile" class="view"><article class="panel"><h3>Profile</h3><div id="profileData"></div></article></section>
+</main></div></div><script src="/coordinator/app.js"></script></body></html>

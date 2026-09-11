@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>TerraSync</title>
+  <link rel="manifest" href="/app/manifest.webmanifest">
+  <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+<div id="loginScreen" class="auth-shell">
+  <section class="auth-card">
+    <div class="brand-mark">T</div>
+    <h1>TerraSync</h1>
+    <p class="lead">Offline-first field inspection, evidence and reporting.</p>
+    <form id="loginForm">
+      <label>Email<input id="loginEmail" type="email" value="engineer@terrasync.demo" required></label>
+      <label>Password<input id="loginPassword" type="password" value="demo123" required></label>
+      <button type="submit" class="primary">Sign in</button>
+      <p id="loginMessage" class="muted"></p>
+    </form>
+    <div class="demo-users">
+      <strong>Demo accounts</strong>
+      <span>Field Engineer · engineer@terrasync.demo / demo123</span>
+      <span>Coordinator · coordinator@terrasync.demo / demo123</span>
+      <span>Admin · admin@terrasync.demo / demo123</span>
+    </div>
+  </section>
+</div>
+
+<div id="appShell" hidden>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark small">T</div>
+      <div><strong>TerraSync</strong><span>Field Operations</span></div>
+    </div>
+    <nav id="mainNav">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="assignments">Assignments</button>
+      <button data-view="inspect">New inspection</button>
+      <button data-view="inventory">Asset inventory</button>
+      <button data-view="reports">Reports</button>
+      <button data-view="review">AI review</button>
+      <button data-view="profile">Profile</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div id="networkBadge" class="network">Checking…</div>
+      <button id="syncButton">Sync now</button>
+      <button id="logoutButton" class="ghost">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow" id="pageEyebrow">Operations</p>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+      <div class="user-chip">
+        <div class="avatar" id="userInitials">FE</div>
+        <div><strong id="userName">Field Engineer</strong><span id="userRole">Field Engineer</span></div>
+      </div>
+    </header>
+
+    <main>
+      <section id="dashboard" class="view active">
+        <div class="hero">
+          <div>
+            <span class="pill">Commercial demo</span>
+            <h2>Evidence-led inspections that work offline.</h2>
+            <p>Capture verified field evidence, inventory assets on-site, run AI pre-screening and generate client-ready reports.</p>
+          </div>
+          <button class="primary" data-action="start-inspection">Start inspection</button>
+        </div>
+        <div class="metric-grid">
+          <article><span>Open assignments</span><strong id="assignmentCount">0</strong></article>
+          <article><span>Reports</span><strong id="reportCount">0</strong></article>
+          <article><span>High-risk</span><strong id="riskCount">0</strong></article>
+          <article><span>Offline queue</span><strong id="queueCount">0</strong></article>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <div class="panel-head"><h3>Assigned work</h3><button class="ghost" data-view-link="assignments">View all</button></div>
+            <div id="dashboardAssignments"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><h3>Recent reports</h3><button class="ghost" data-view-link="reports">View all</button></div>
+            <div id="dashboardReports"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="assignments" class="view">
+        <article class="panel">
+          <div class="panel-head"><div><h3>Assignments</h3><p class="muted">Client and project inspection work.</p></div></div>
+          <div id="assignmentList"></div>
+        </article>
+      </section>
+
+      <section id="inventory" class="view">
+        <div class="grid-2 inventory-layout">
+          <article class="panel">
+            <div class="panel-head"><div><h3>Equipment inventory</h3><p class="muted">Client-supplied assets and assets created on-site.</p></div></div>
+            <div id="assetList"></div>
+          </article>
+          <article class="panel">
+            <h3>Add asset on-site</h3>
+            <form id="assetForm" class="form-grid">
+              <label>Asset type<select id="assetType"><option>RRU</option><option>Antenna</option><option>Microwave Dish</option><option>Generator</option><option>Inverter</option><option>Battery Bank</option><option>Solar Module</option><option>Pump</option><option>Other</option></select></label>
+              <label>Manufacturer<input id="assetManufacturer"></label>
+              <label>Model<input id="assetModel"></label>
+              <label>Serial number<input id="assetSerial"></label>
+              <label>Quantity<input id="assetQuantity" type="number" min="1" value="1"></label>
+              <label>Height / elevation<input id="assetHeight" placeholder="e.g. 53 m"></label>
+              <label>Dimensions<input id="assetDimensions" placeholder="e.g. 700 × 350 × 180 mm"></label>
+              <label>Condition<select id="assetCondition"><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select></label>
+              <label class="wide">Position / mount<input id="assetPosition" placeholder="e.g. Leg B / platform 3"></label>
+              <label class="wide">Notes<textarea id="assetNotes" rows="3"></textarea></label>
+              <div class="wide evidence-card">
+                <strong>Asset evidence</strong>
+                <p class="muted">Capture a live full-picture photo. The photo carries GPS + time only.</p>
+                <video id="assetCamera" playsinline autoplay muted hidden></video>
+                <canvas id="assetCanvas" hidden></canvas>
+                <img id="assetPreview" hidden alt="Captured asset evidence">
+                <div class="button-row">
+                  <button type="button" id="openAssetCamera">Open camera</button>
+                  <button type="button" id="captureAssetPhoto" disabled>Capture photo</button>
+                  <button type="button" id="retakeAssetPhoto" hidden>Retake</button>
+                </div>
+                <p id="assetCaptureStatus" class="muted">Photo required.</p>
+              </div>
+              <button class="primary wide" type="submit">Add asset</button>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section id="inspect" class="view">
+        <form id="inspectionForm" class="panel form-grid">
+          <div class="wide panel-head">
+            <div><h3>Field inspection</h3><p class="muted">Template-driven capture with verified camera evidence.</p></div>
+            <span id="templateBadge" class="pill">Tower Maintenance</span>
+          </div>
+          <label>Assignment<select id="workOrder" required></select></label>
+          <label>Template<select id="templateSelect"><option>Tower Maintenance Inspection</option><option>Rooftop Telecom Site Inspection</option><option>Telecom Power & Shelter Inspection</option><option>Solar PV Site Inspection</option><option>Generator / Backup Power Inspection</option></select></label>
+          <label>Structural / physical condition<select id="structural"><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select></label>
+          <label>Electrical condition<select id="electrical"><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select></label>
+          <label>Safety condition<select id="safety"><option>Good</option><option>Concern</option><option>Unsafe</option></select></label>
+          <label>Overall grade<select id="grade"><option>Grade A</option><option>Grade B</option><option>Grade C</option><option>Grade D</option></select></label>
+          <label>Earth resistance (Ω)<input id="earth" type="number" step="0.01"></label>
+          <label>Temperature (°C)<input id="temperature" type="number" step="0.1"></label>
+          <label class="wide">Observations<textarea id="observations" rows="4"></textarea></label>
+
+          <section class="wide evidence-card">
+            <div class="panel-head">
+              <div><h3>Verified site evidence</h3><p class="muted">Live camera only. GPS and timestamp are captured automatically.</p></div>
+              <span id="evidenceStatus" class="status bad">Required</span>
+            </div>
+            <video id="cameraPreview" playsinline autoplay muted hidden></video>
+            <canvas id="captureCanvas" hidden></canvas>
+            <img id="capturedPreview" alt="Verified field evidence" hidden>
+            <div class="button-row">
+              <button type="button" id="startCameraButton">Open camera</button>
+              <button type="button" id="captureButton" disabled>Capture verified photo</button>
+              <button type="button" id="retakeButton" hidden>Retake</button>
+            </div>
+            <p id="captureMetadata" class="muted">Camera not started.</p>
+          </section>
+
+          <div class="wide button-row">
+            <button type="submit" id="submitInspectionButton" class="primary" disabled>Submit inspection</button>
+            <span id="formMessage" class="muted"></span>
+          </div>
+        </form>
+      </section>
+
+      <section id="reports" class="view">
+        <article class="panel">
+          <div class="panel-head"><div><h3>Reports</h3><p class="muted">Generated inspection reports and evidence packages.</p></div></div>
+          <div id="reportsList"></div>
+        </article>
+      </section>
+
+      <section id="review" class="view">
+        <article class="panel">
+          <div class="panel-head"><div><h3>AI pre-screen review</h3><p class="muted">Prioritized completeness, inconsistency, abnormal-reading and safety findings.</p></div></div>
+          <div id="reviewList"></div>
+        </article>
+      </section>
+
+      <section id="profile" class="view">
+        <div class="grid-2">
+          <article class="panel profile-card">
+            <div class="avatar large" id="profileInitials">FE</div>
+            <h2 id="profileName">Field Engineer</h2>
+            <p id="profileRole" class="muted">Field Engineer</p>
+            <div class="profile-grid" id="profileDetails"></div>
+          </article>
+          <article class="panel">
+            <h3>Credentials & certification</h3>
+            <div id="credentialList"></div>
+            <p class="muted">Inspector credentials appear in final reports. They are never burned onto evidence photographs.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="/app/app.js"></script>
+</body>
+</html>

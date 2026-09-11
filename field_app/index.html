@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <title>TerraSync Field</title>
+  <link rel="manifest" href="/app/manifest.webmanifest">
+  <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+<section id="splash" class="gate">
+  <div class="gate-card splash-card">
+    <div class="logo">T</div>
+    <h1>TerraSync</h1>
+    <p>Preparing your offline field workspace…</p>
+    <div class="loader"></div>
+  </div>
+</section>
+
+<section id="activation" class="gate hidden">
+  <form id="activationForm" class="gate-card">
+    <div class="logo">T</div>
+    <span class="eyebrow">Device activation</span>
+    <h1>Activate this phone</h1>
+    <p>Use your username and one-time code. After activation, this registered phone opens TerraSync directly—even when offline.</p>
+    <label>Username<input id="username" value="field.tech" autocomplete="username" required></label>
+    <label>One-time code<input id="otp" inputmode="numeric" value="246810" required></label>
+    <button class="primary" type="submit">Activate device</button>
+    <p id="activationMessage" class="muted"></p>
+  </form>
+</section>
+
+<div id="fieldShell" class="app hidden">
+  <header class="mobile-top">
+    <div class="brand"><div class="logo small">T</div><div><strong>TerraSync</strong><span>Field</span></div></div>
+    <button id="profileButton" class="profile-button"><span id="headerInitials">FT</span></button>
+  </header>
+
+  <aside class="rail">
+    <div class="brand"><div class="logo small">T</div><div><strong>TerraSync</strong><span>Field Operations</span></div></div>
+    <nav>
+      <button data-view="home" class="active"><span>⌂</span>Home</button>
+      <button data-view="tasks"><span>▣</span>Tasks</button>
+      <button data-view="inventory"><span>▦</span>Inventory</button>
+      <button data-view="inspection"><span>✓</span>Inspection</button>
+      <button data-view="sync"><span>↻</span>Sync</button>
+      <button data-view="profile"><span>●</span>Profile</button>
+    </nav>
+    <div class="rail-foot">
+      <div id="network" class="network">Checking…</div>
+      <button id="syncNow">Sync now</button>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="desktop-top">
+      <div><p class="eyebrow">Field operations</p><h1 id="title">Dashboard</h1></div>
+      <div class="top-actions">
+        <div id="lastSync" class="muted">Not synced yet</div>
+        <button class="user-chip" data-view-button="profile">
+          <span class="avatar" id="avatar">FT</span>
+          <span><strong id="userName">Technician</strong><small id="userRole">Field Technician</small></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="view active">
+        <article class="hero">
+          <div>
+            <span class="pill">Offline-ready</span>
+            <h2 id="welcome">Your field workspace</h2>
+            <p>Assignments, inspection drafts, evidence and inventory stay available on this registered device when connectivity disappears.</p>
+          </div>
+          <button class="primary" data-view-button="tasks">Open assignments</button>
+        </article>
+        <div class="metrics">
+          <article><span>Assigned</span><strong id="assigned">0</strong></article>
+          <article><span>In progress</span><strong id="progress">0</strong></article>
+          <article><span>Completed</span><strong id="completed">0</strong></article>
+          <article><span>Pending sync</span><strong id="pending">0</strong></article>
+        </div>
+        <div class="two-col">
+          <article class="panel"><div class="panel-head"><div><h3>Priority assignments</h3><p>Downloaded to this device.</p></div></div><div id="homeTasks"></div></article>
+          <article class="panel"><div class="panel-head"><div><h3>Sync health</h3><p>Local work is retained until confirmed by the server.</p></div></div><div id="homeSync"></div></article>
+        </div>
+      </section>
+
+      <section id="tasks" class="view">
+        <article class="panel">
+          <div class="panel-head"><div><h3>Assignments</h3><p>Select an assignment to start or continue field work.</p></div><span class="pill" id="taskCount">0 tasks</span></div>
+          <div id="taskList"></div>
+        </article>
+      </section>
+
+      <section id="inventory" class="view">
+        <div class="two-col inventory-layout">
+          <article class="panel">
+            <div class="panel-head"><div><h3>Equipment inventory</h3><p>Client-supplied assets and assets captured on-site.</p></div><select id="inventoryAssignment"></select></div>
+            <div id="assetList"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><h3>Create asset on-site</h3><p>Use when the client inventory is missing or incomplete.</p></div></div>
+            <form id="assetForm" class="form-grid">
+              <label>Type<select id="assetType"><option>RRU</option><option>Antenna</option><option>Microwave Dish</option><option>Generator</option><option>Inverter</option><option>Battery Bank</option><option>Solar Module</option><option>Pump</option><option>Other</option></select></label>
+              <label>Manufacturer<input id="assetManufacturer"></label>
+              <label>Model<input id="assetModel"></label>
+              <label>Serial number<input id="assetSerial"></label>
+              <label>Quantity<input id="assetQuantity" type="number" min="1" value="1"></label>
+              <label>Height / elevation<input id="assetHeight" placeholder="e.g. 53 m"></label>
+              <label>Dimensions<input id="assetDimensions" placeholder="e.g. 480 × 320 × 165 mm"></label>
+              <label>Condition<select id="assetCondition"><option>Good</option><option>Fair</option><option>Poor</option><option>Critical</option></select></label>
+              <label class="wide">Position / mount<input id="assetPosition" placeholder="e.g. Tower Leg B / Platform 3"></label>
+              <label class="wide">Notes<textarea id="assetNotes" rows="3"></textarea></label>
+              <section class="wide capture-box">
+                <div class="panel-head"><div><h4>Full-picture evidence</h4><p>Live camera only. The photo watermark contains GPS and capture time only.</p></div><span id="assetEvidenceState" class="state bad">Required</span></div>
+                <video id="assetCamera" playsinline autoplay muted hidden></video>
+                <canvas id="assetCanvas" hidden></canvas>
+                <img id="assetPreview" hidden alt="Asset camera evidence">
+                <div class="button-row">
+                  <button type="button" id="openAssetCamera">Open camera</button>
+                  <button type="button" id="captureAssetPhoto" class="primary" disabled>Capture</button>
+                  <button type="button" id="retakeAssetPhoto" hidden>Retake</button>
+                </div>
+                <p id="assetCaptureStatus" class="muted">Camera not started.</p>
+              </section>
+              <button type="submit" class="primary wide">Save asset</button>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <section id="inspection" class="view">
+        <article id="inspectionEmpty" class="panel empty">
+          <h3>Select an assignment first</h3>
+          <p>Open Tasks and choose Start / Continue to load the correct site and template.</p>
+          <button data-view-button="tasks">View assignments</button>
+        </article>
+        <form id="inspectionForm" class="panel form-grid hidden">
+          <div class="wide panel-head">
+            <div><span class="eyebrow">Active inspection</span><h3 id="inspectionTitle">Inspection</h3><p id="inspectionSite"></p></div>
+            <span id="inspectionPriority" class="pill"></span>
+          </div>
+          <label class="wide">Template<input id="inspectionTemplate" readonly></label>
+          <div id="templateSummary" class="wide template-summary"></div>
+          <div id="templateSections" class="wide template-sections"></div>
+          <section class="wide capture-box">
+            <div class="panel-head"><div><h4>Verified inspection evidence</h4><p>Capture evidence against the current template section. GPS and time are bound automatically.</p></div><span id="evidenceStatus" class="state bad">Required</span></div>
+            <label>Evidence section<select id="evidenceSection"></select></label>
+            <div id="evidenceProgress" class="muted"></div>
+            <video id="cameraPreview" playsinline autoplay muted hidden></video>
+            <canvas id="captureCanvas" hidden></canvas>
+            <img id="capturedPreview" alt="Verified inspection evidence" hidden>
+            <div class="button-row">
+              <button type="button" id="startCameraButton">Open camera</button>
+              <button type="button" id="captureButton" class="primary" disabled>Capture verified photo</button>
+              <button type="button" id="retakeButton" hidden>Retake</button>
+            </div>
+            <p id="captureMetadata" class="muted">Camera not started.</p>
+            <div id="evidenceGallery" class="evidence-gallery"></div>
+          </section>
+          <div class="wide action-bar">
+            <button type="button" id="saveDraftButton">Save draft</button>
+            <button type="submit" id="submitInspectionButton" class="primary" disabled>Submit inspection</button>
+            <span id="formMessage" class="muted"></span>
+          </div>
+        </form>
+      </section>
+
+      <section id="sync" class="view">
+        <div class="two-col">
+          <article class="panel"><h3>Synchronization</h3><p id="syncStatus" class="muted"></p><div id="queueBreakdown"></div><button id="syncPageButton" class="primary">Sync now</button></article>
+          <article class="panel"><h3>Registered device</h3><div id="deviceInfo"></div><p class="muted">This device session remains available for offline field work. A revoked device locks on its next successful server check.</p></article>
+        </div>
+      </section>
+
+      <section id="profile" class="view">
+        <div class="two-col">
+          <article class="panel profile-card"><div class="avatar large" id="profileAvatar">FT</div><h2 id="profileName">Technician</h2><p id="profileStaff" class="muted"></p><div id="profileDetails" class="profile-grid"></div></article>
+          <article class="panel"><h3>Credentials</h3><div id="credentials"></div><p class="muted">Credentials are report metadata only. They are not burned onto evidence photos.</p></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav">
+    <button data-view="home" class="active">Home</button>
+    <button data-view="tasks">Tasks</button>
+    <button data-view="inspection">Inspect</button>
+    <button data-view="sync">Sync</button>
+  </nav>
+</div>
+<script src="/app/app.js"></script>
+</body>
+</html>

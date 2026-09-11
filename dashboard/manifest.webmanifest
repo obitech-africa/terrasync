@@ -1,0 +1,10 @@
+{
+  "name": "TerraSync Field Operations",
+  "short_name": "TerraSync",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#07101e",
+  "theme_color": "#0b1220",
+  "description": "Offline-first field inspection, evidence, AI pre-screening and reporting."
+}
